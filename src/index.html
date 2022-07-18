@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <script src="/deps/gunzip.min.js"></script>
+    <script src="/config.js"></script>
+    <script src="/utils.js"></script>
+    <script>
+      let path = document.location.pathname.match(/^\/([^\/]+)\/([\s\S]+)?/);
+      if(!path) path = window.config.home;
+      let showRaw;
+      if(path[1].startsWith('raw:')) {
+        path[1] = path[1].slice(4);
+        showRaw = true;
+      }
+      loadDocument(path[1], path[2])
+        .then(doc => {
+          if(showRaw) {
+            document.body.innerHTML = '<pre>' + htmlEscape(doc) + '</pre>';
+          } else {
+            document.write(doc);
+            document.close();
+          }
+        })
+        .catch(err => {
+          document.write('Error loading document');
+          document.close();
+          console.log(err);
+        });
+    </script>
+  </body>
+</html>
