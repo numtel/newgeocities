@@ -46,9 +46,9 @@ async function deployContracts() {
     contracts[contractName].instance = deployed;
   }
   // Provide contract addresses to frontend
-  fs.writeFileSync(`${BUILD_DIR}config.js`, `
-  window.config=${JSON.stringify({
+  const config = JSON.stringify({
     home: [ , '0x6E43Ed02ca36DB68917a853405b566b5D16A329d', ''],
+    root: 'http://localhost:3000/',
     rpc: `http://localhost:${PORT}`,
     chain: '0x539',
     chainName: 'Localhost',
@@ -64,6 +64,6 @@ async function deployContracts() {
       };
       return out;
     }, {}),
-  })};
-  `);
+  });
+  fs.writeFileSync(`${BUILD_DIR}config.json`, config);
 }

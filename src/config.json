@@ -1,0 +1,22 @@
+{
+  "home": [null, "0xa48c718AE6dE6599c5A46Fd6caBff54Def39473a", ""],
+  "root": "http://localhost:3000/",
+  "rpc": "https://rpc.ankr.com/optimism",
+  "blockExplorer": "https://optimistic.etherscan.io",
+  "name": "Optimism",
+  "nativeCurrency": {
+    "name": "ETH",
+    "symbol": "ETH",
+    "decimals": 18
+  },
+  "chain": "0xa",
+  "chainName": "Optimism",
+  "contracts": {
+    "Documents": {
+      "address": "0xeBE69E4fBf86094Bd9b3CDB679f25a863F299574"
+    },
+    "UniqueId": {
+      "address": "0xB44Ae7f175c44bD24224933C049Cb7D2C19a3804"
+    }
+  }
+}

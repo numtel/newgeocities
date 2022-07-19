@@ -11,4 +11,7 @@ contract Documents {
   function latest(address account, address id) external view returns(bytes memory) {
     return docs[account][id][docs[account][id].length - 1];
   }
+  function count(address account, address id) external view returns(uint) {
+    return docs[account][id].length;
+  }
 }

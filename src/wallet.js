@@ -1,34 +1,35 @@
 
 async function wallet() {
-//   const web3Modal = new Web3Modal.default({
-//     cacheProvider: true,
-//     providerOptions: {
-//       coinbasewallet: {
-//         package: CoinbaseWalletSDK,
-//         options: {
-//           appName: 'Publish Document',
-//           rpc: window.config.rpc,
-//           chainId: Number(window.config.chain),
-//         }
-//       },
-//     }
-//   });
-//   let provider;
-//   try {
-//     provider = await web3Modal.connect();
-//   } catch(e) {
-//     console.log("Could not get a wallet connection", e);
-//     return;
-//   }
-  const web3 = new Web3('http://localhost:8545');
+  const config = await (await fetch('/config.json')).json();
+  const web3Modal = new Web3Modal.default({
+    cacheProvider: true,
+    providerOptions: {
+      coinbasewallet: {
+        package: CoinbaseWalletSDK,
+        options: {
+          appName: 'Publish Document',
+          rpc: config.rpc,
+          chainId: Number(config.chain),
+        }
+      },
+    }
+  });
+  let provider;
+  try {
+    provider = await web3Modal.connect();
+  } catch(e) {
+    console.log("Could not get a wallet connection", e);
+    return;
+  }
+  const web3 = new Web3(provider);
   web3.eth.handleRevert = true;
   const chainId = '0x' + (await web3.eth.getChainId()).toString(16);
-  if(chainId !== window.config.chain) {
+  if(chainId !== config.chain) {
     let tryAddChain = false;
     try {
       await provider.request({
         method: 'wallet_switchEthereumChain',
-        params: [ { chainId: window.config.chain } ]
+        params: [ { chainId: config.chain } ]
       });
     } catch(error) {
       if(error.message.match(
@@ -45,11 +46,11 @@ async function wallet() {
         await provider.request({
           method: 'wallet_addEthereumChain',
           params: [ {
-            chainId: window.config.chain,
-            chainName: window.config.chainName,
-            nativeCurrency: window.config.nativeCurrency,
-            rpcUrls: [ window.config.rpc ],
-            blockExplorerUrls: [ window.config.blockExplorer ]
+            chainId: config.chain,
+            chainName: config.chainName,
+            nativeCurrency: config.nativeCurrency,
+            rpcUrls: [ config.rpc ],
+            blockExplorerUrls: [ config.blockExplorer ]
           } ]
         });
       } catch(error) {
@@ -64,5 +65,5 @@ async function wallet() {
       else resolve(accounts);
     });
   });
-  return {web3, accounts};
+  return {web3, accounts, config};
 }

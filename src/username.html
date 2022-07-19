@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Set Username</title>
+    <link href="tvision.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="top-menu-bar">
+      <a href="/">Home</a>
+      <a href="/publish.html">Publish</a>
+      <a href="/username.html">Username</a>
+    </div>
+    <form class="white window">
+      <fieldset>
+        <legend>Input a new username or submit blank to unset</legend>
+        <div>
+          <input id="name" placeholder="Name">
+        </div>
+      </fieldset>
+      <p><button type="submit">Submit</button></p>
+    </form>
+    <div class="blue window">
+      <p>Your pages are available on URLs by your account address or your chosen unique username.</p>
+      <p>Do not forget your username as there is no way to retrieve it after setting since it's stored in hashed form.</p>
+    </div>
+    <script src="deps/web3.min.js"></script>
+    <script src="deps/coinbase.min.js"></script>
+    <script src="deps/web3modal.min.js"></script>
+    <script src="deps/gzip.min.js"></script>
+    <script src="wallet.js"></script>
+    <script src="utils.js"></script>
+    <script>
+      async function submit(event) {
+        event.preventDefault();
+        const {accounts,web3,config} = await wallet();
+        const name = document.getElementById('name').value;
+        let id;
+        if(name !== '') {
+          id = '0x' + await sha1(name);
+        } else {
+          id = '0x0000000000000000000000000000000000000000';
+        }
+        try {
+          const tx = {
+            to: config.contracts.UniqueId.address,
+            from: accounts[0],
+            data: web3.eth.abi.encodeFunctionCall({
+              name: 'set', type: 'function',
+              inputs: [
+                { type: 'address', name: 'id' },
+              ],
+            }, [ id ])
+          };
+          tx.gas = await web3.eth.estimateGas(tx);
+          await web3.eth.sendTransaction(tx);
+        } catch(error) {
+          console.log(error);
+          alert(error.message || error);
+          return;
+        }
+        alert('Name set!');
+      }
+      document.querySelector('form').addEventListener('submit', submit);
+    </script>
+  </body>
+</html>

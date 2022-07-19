@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Publish Document</title>
+    <link href="tvision.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="top-menu-bar">
+      <a href="/">Home</a>
+      <a href="/publish.html">Publish</a>
+      <a href="/username.html">Username</a>
+    </div>
+    <form class="white window">
+      <fieldset>
+        <legend>Publish a file onto the blockchain</legend>
+        <div>
+          <input id="name" placeholder="Name">
+        </div>
+        <div>
+          <input id="file" type="file">
+        </div>
+      </fieldset>
+      <p><button type="submit">Submit</button></p>
+    </form>
+    <div class="blue window">
+      <p>Will be posted on chain for perpetuity.</p>
+      <p>Be sure to include file extension in name for proper mime type. Names without extension will be assumed as HTML.</p>
+      <p>Don't forget your uploaded filenames as they are hashed when publishing. There is no way to list your file names.</p>
+    </div>
+    <script src="deps/web3.min.js"></script>
+    <script src="deps/coinbase.min.js"></script>
+    <script src="deps/web3modal.min.js"></script>
+    <script src="deps/gzip.min.js"></script>
+    <script src="wallet.js"></script>
+    <script src="utils.js"></script>
+    <script>
+      function fileToUint8Array(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader;
+          reader.onload = function() {
+            resolve(new Uint8Array(this.result));
+          };
+          reader.readAsArrayBuffer(file);
+        });
+      }
+      async function submit(event) {
+        event.preventDefault();
+        const {accounts,web3,config} = await wallet();
+        const name = document.getElementById('name').value;
+        const files = document.getElementById('file').files;
+        if(files.length === 0) {
+          alert('No File Selected');
+          return;
+        }
+
+        const gzip = new Zlib.Gzip(await fileToUint8Array(files[0]));
+        const zipped = Array.from(gzip.compress())
+          .map(byte => ('0' + byte.toString(16)).slice(-2))
+          .join('');
+        const id = '0x' + await sha1(name);
+        try {
+          const tx = {
+            to: config.contracts.Documents.address,
+            from: accounts[0],
+            data: web3.eth.abi.encodeFunctionCall({
+              name: 'post', type: 'function',
+              inputs: [
+                { type: 'address', name: 'id' },
+                { type: 'bytes', name: 'input' }
+              ],
+            }, [ id, '0x' + zipped ])
+          };
+          tx.gas = await web3.eth.estimateGas(tx);
+          await web3.eth.sendTransaction(tx);
+        } catch(error) {
+          console.log(error);
+          alert(error.message || error);
+          return;
+        }
+        document.location = '/' + accounts[0] + '/' + name;
+      }
+      document.querySelector('form').addEventListener('submit', submit);
+    </script>
+  </body>
+</html>
