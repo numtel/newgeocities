@@ -28,14 +28,32 @@
       <p>Clicking Submit will prompt to connect your Metamask or Coinbase wallet.</p>
       <p>You will be redirected to your uploaded file after the transaction completes. If an error is given after redirect, refresh after a few seconds.</p>
       <p>File will be posted on chain for perpetuity.</p>
+    </div>
+    <div class="blue window">
+      <fieldset>
+      <legend>Naming</legend>
       <p>Be sure to include file extension in name for proper mime type. Names without extension will be assumed as HTML.</p>
       <p>Examples:</p>
       <p>By account address: newgeocities.com/0x1234.../filename</p>
       <p>By username: newgeocities.com/username/filename</p>
       <p>Don't forget your uploaded filenames as they are hashed when publishing. There is no way to list your file names.</p>
       <p>Submit with empty name for your homepage URL.</p>
-      <p>You can overwrite a file by publishing to the same name. Overwrites are saved as a new version in the contract.<br><em>*Coming soon*</em> URL routes for accessing versions other than latest</p>
-      <p>The cost of storage depends on the gas fees. Your wallet app will provide the gas estimate before you sign the transaction. If your file is too big to fit in a block, you will receive an error message before any transaction is made. A possible future feature could be splitting larger file uploads across multiple transactions.</p>
+      </fieldset>
+    </div>
+    <div class="blue window">
+      <fieldset>
+      <legend>Versioning</legend>
+      <p>You can overwrite a file by publishing to the same name. Overwrites are saved as a new version in the contract.</p>
+      <p>Append "?version=count" to a URL to retrieve the total number of versions available</p>
+      <p>Or append "?version=1" where 1 is the number of the version requested</p>
+      </fieldset>
+    </div>
+    <div class="blue window">
+      <fieldset>
+      <legend>Cost</legend>
+      <p>The cost of storage depends on the gas fees. Your wallet app will provide the gas estimate before you sign the transaction.</p>
+      <p>If your file is too big to fit in a block, you will receive an error message before any transaction is made. A possible future feature could be splitting larger file uploads across multiple transactions.</p>
+      </fieldset>
     </div>
     <div class="white window">
       <p>Want to host your site on your own domain? Clone the repo, and put the src directory on a webserver and update the <a href="https://github.com/numtel/newgeocities/blob/main/src/sw.js#L25">loader function in sw.js</a> so that it always loads from your account address.
