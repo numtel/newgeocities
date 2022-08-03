@@ -20,13 +20,22 @@ self.addEventListener('fetch', (event) => {
 async function loader(request) {
   const config = await (await fetch('/config.json')).json();
   if(!request.url.startsWith(config.root)) return fetch(request);
-  const url = request.url.slice(config.root.length);
-  if(hostable.indexOf(url) !== -1) return fetch(request);
-  let path = url.match(/^([^\/]+)\/([\s\S]+)?/);
+  const url = new URL(request.url);
+  if(hostable.indexOf(url.pathname.slice(1)) !== -1) return fetch(request);
+  let path = url.pathname.match(/^\/([^\/]+)\/([\s\S]+)?/);
+  let version = 'latest';
   if(!path) {
     path = config.home;
+  } else {
+    version = url.searchParams.get('version');
+    if(version === 'count') {
+      const count = await countVersions(path[1], path[2], config);
+      return new Response(count, {
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
   }
-  const doc = await loadDocument(path[1], path[2], config);
+  const doc = await loadDocument(path[1], path[2], config, version);
   if(doc) {
     const separator = (path[2] || '').lastIndexOf('.');
     let extension;
@@ -76,15 +85,24 @@ async function accountById(id, config) {
   const json = await response.json();
   return '0x' + json.result.slice(-40);
 }
-async function loadDocument(address, name, config) {
+async function loadDocument(address, name, config, version) {
   if(!address.match(/^0x[a-f0-9]{40}$/i)) {
     address = await accountById(await sha1(address), config);
   }
   const id = await sha1(name);
+  let data;
+  if(version && !isNaN(version)) {
+    const versionValue =
+      ('0000000000000000000000000000000000000000000000000000000000000000'
+      + (Number(version) - 1).toString(16)).slice(-64);
+    data = `0x054e2d67000000000000000000000000${address.slice(2)}000000000000000000000000${id}${versionValue}`;
+  } else {
+    data = `0x6ac35f5b000000000000000000000000${address.slice(2)}000000000000000000000000${id}`;
+  }
   const req = {
     "jsonrpc":"2.0","id":9,"method":"eth_call","params":[{
       "to": config.contracts.Documents.address,
-      data: `0x6ac35f5b000000000000000000000000${address.slice(2)}000000000000000000000000${id}`
+      data
     },"latest"]
   };
   const response = await fetch(config.rpc, {
@@ -99,5 +117,27 @@ async function loadDocument(address, name, config) {
     const data = Uint8Array.from(zipped.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
     const gunzip = new Zlib.Gunzip(data);
     return gunzip.decompress();
+  }
+}
+
+async function countVersions(address, name, config) {
+  if(!address.match(/^0x[a-f0-9]{40}$/i)) {
+    address = await accountById(await sha1(address), config);
+  }
+  const id = await sha1(name);
+  const req = {
+    "jsonrpc":"2.0","id":9,"method":"eth_call","params":[{
+      "to": config.contracts.Documents.address,
+      data: `0x1b4ab8a2000000000000000000000000${address.slice(2)}000000000000000000000000${id}`
+    },"latest"]
+  };
+  const response = await fetch(config.rpc, {
+    method: 'POST',
+    body: JSON.stringify(req),
+    headers: {"Content-type": "application/json; charset=UTF-8"}
+  })
+  const json = await response.json();
+  if(json.result) {
+    return parseInt(json.result);
   }
 }
